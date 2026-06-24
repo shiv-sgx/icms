@@ -20,9 +20,10 @@ router.get(
 
 // Feature routers
 router.use('/auth', require('./auth.routes'));
-// Phase 2+ mount points:
-//   router.use('/customer', require('./customer.routes'));
+router.use('/customer', require('./customer.routes'));
+// Phase 3+ mount points:
 //   router.use('/agent', require('./agent.routes'));
+//   router.use('/surveyor', require('./surveyor.routes'));
 //   ...
 
 module.exports = router;

@@ -21,6 +21,7 @@ function authJwt(req, res, next) {
       username: claims.username,
       role: claims.role,
       fullName: claims.fullName,
+      email: claims.email,
     };
     return next();
   } catch {

@@ -13,6 +13,7 @@ function sign(user) {
     username: user.username,
     role: user.roleName || user.role,
     fullName: user.fullName,
+    email: user.email,
   };
   return jwt.sign(payload, config.jwt.secret, { expiresIn: config.jwt.ttl });
 }

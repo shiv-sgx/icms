@@ -31,18 +31,12 @@ export const routes: Routes = [
       { path: 'faq', loadComponent: () => import('./features/auth/faq').then((m) => m.Faq) },
       { path: 'denied', loadComponent: () => import('./features/auth/denied').then((m) => m.Denied) },
 
-      // Customer (Phase 2 replaces placeholders with real components)
+      // Customer (Phase 2)
       {
         path: 'customer',
         canActivate: [roleGuard],
         data: { role: 'CUSTOMER' },
-        children: [
-          { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-          ph('dashboard', 'Dashboard'),
-          ph('claims', 'My Claims'),
-          ph('new-claim', 'New Claim'),
-          ph('profile', 'My Profile'),
-        ],
+        loadChildren: () => import('./features/customer/customer.routes').then((m) => m.CUSTOMER_ROUTES),
       },
 
       // Agent (Phase 3)

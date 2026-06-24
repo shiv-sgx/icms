@@ -78,6 +78,9 @@ function parseDbConnection() {
     decimalNumbers: false,
     supportBigNumbers: true,
     bigNumberStrings: true,
+    // DATE/DATETIME/TIME returned as the stored strings (no JS Date timezone shift),
+    // matching how the Struts app rendered LocalDate/LocalDateTime values.
+    dateStrings: true,
     timezone: 'Z',
   };
 }

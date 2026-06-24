@@ -25,7 +25,7 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 |------|-------|--------|
 | 0 | Scaffold backend + frontend | ✅ DONE (committed) |
 | 1 | Auth + layout (JWT, shell, login) | ✅ DONE (committed) |
-| 2 | Customer portal | ⬜ pending |
+| 2 | Customer portal | ✅ DONE (committed) |
 | 3 | Agent + Surveyor portals | ⬜ pending |
 | 4 | Manager + Admin + reports | ⬜ pending |
 | 5 | Uploads + CSV exports | ⬜ pending |
@@ -59,6 +59,25 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 
 > NOTE: `.nav-item.active` has no rule in icms.css (original relied on icms.js adding the class
 > with no distinct style); `routerLinkActive="active"` is wired but intentionally not restyled to avoid drift.
+
+### Phase 2 — DONE
+**Backend (tested against live DB):**
+- domain `claimStatus.js` (port of ClaimStatus + timeline builder); utils `money.js` (decimal.js, DECIMAL as strings), `paging.js`.
+- repos: `claimRepo` (full ClaimDao port incl. agent/manager/surveyor queries for later phases), `policyRepo`, `policyholderRepo`, `documentRepo`, `communicationRepo`, `notificationRepo`.
+- services: `claimService` (resolveCustomer, policiesForCustomer, listForCustomer, customerCounts, getOwnedClaim, customerClaimBundle, createClaim, withdraw; customer-safe projection strips internalNotes/fraud/risk/ids), `communicationService`, `notificationService`, `documentService` (forClaim + seedRequiredDocuments).
+- `controllers/customer.controller.js` + `routes/customer.routes.js` (authJwt + roleGuard('CUSTOMER')); mounted `/api/v1/customer`.
+- Endpoints: GET dashboard, claims (paged), claims/:id (bundle, ownership-enforced→404), policies, profile; POST claims (draft/submit), claims/:id/messages, claims/:id/withdraw.
+- JWT now also carries `email` (needed to resolve policyholder); `dateStrings:true` on the DB connection (no tz date-shift).
+- **Verified:** dashboard counts/recent/notifs; policies displayLabel; list pagination + statusLabel/statusPill; detail bundle (timeline 9, docs, msgs) with internalNotes stripped; cross-customer access→404; create SUBMITTED claim → CLM-2026-0013, 3 docs seeded, system msg, AGENT notification, CLAIM_SUBMITTED audit, decimal 12500.50 preserved; message POST 201; withdraw→WITHDRAWN; re-withdraw→409; validation 400 with field map.
+
+**Frontend (builds clean):**
+- shared models (Claim, Policy, Policyholder, ClaimDocument, Communication, Notification, TimelineStage, ClaimBundle, CustomerDashboard).
+- reusable components: `status-pill`, `timeline`, `message-thread`, `paginator` (used by later phases too).
+- `features/customer`: `customer.api.ts` + pages dashboard/claims/claim-detail/new-claim/profile (port the JSPs 1:1 with same CSS classes); `customer.routes.ts` lazy-loaded.
+- `app.routes.ts` customer area now loads real components; `withComponentInputBinding()` enabled (route `:id` → component input).
+- **Verified:** ng build clean; dashboard data loads via dev proxy; customer SPA deep-links 200.
+
+> Document upload UI is intentionally stubbed on claim-detail (panel-foot note) until Phase 5.
 
 ## Key facts / decisions (don't re-derive)
 - BCrypt: existing `$2a$10$...` hashes verify via `bcryptjs` (confirmed). New hashes use cost 10.
