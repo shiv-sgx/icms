@@ -4,14 +4,6 @@ import { roleGuard } from './core/guards/role.guard';
 import { homeRedirectGuard } from './core/guards/home-redirect.guard';
 import { AppShell } from './core/layout/app-shell';
 import { PublicShell } from './core/layout/public-shell';
-import { PagePlaceholder } from './shared/components/page-placeholder';
-
-/** Helper: a placeholder route (real component arrives in a later phase). */
-const ph = (path: string, title: string, subtitle = '') => ({
-  path,
-  component: PagePlaceholder,
-  data: { title, subtitle },
-});
 
 export const routes: Routes = [
   // Public area (centered shell)
@@ -60,12 +52,7 @@ export const routes: Routes = [
         path: 'manager',
         canActivate: [roleGuard],
         data: { role: 'MANAGER' },
-        children: [
-          { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-          ph('dashboard', 'Dashboard'),
-          ph('approvals', 'Approval Queue'),
-          ph('reports', 'Reports & Analytics'),
-        ],
+        loadChildren: () => import('./features/manager/manager.routes').then((m) => m.MANAGER_ROUTES),
       },
 
       // Admin (Phase 4)
@@ -73,17 +60,7 @@ export const routes: Routes = [
         path: 'admin',
         canActivate: [roleGuard],
         data: { role: 'ADMIN' },
-        children: [
-          { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-          ph('dashboard', 'Dashboard'),
-          ph('users', 'User Management'),
-          ph('roles', 'Role Management'),
-          ph('documents', 'Claim Config'),
-          ph('sla', 'SLA Config'),
-          ph('thresholds', 'Approval Thresholds'),
-          ph('templates', 'Notification Templates'),
-          ph('audit', 'Audit Logs'),
-        ],
+        loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
       },
     ],
   },

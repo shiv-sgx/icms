@@ -23,8 +23,7 @@ router.use('/auth', require('./auth.routes'));
 router.use('/customer', require('./customer.routes'));
 router.use('/agent', require('./agent.routes'));
 router.use('/surveyor', require('./surveyor.routes'));
-// Phase 4+ mount points:
-//   router.use('/manager', require('./manager.routes'));
-//   router.use('/admin', require('./admin.routes'));
+router.use('/manager', require('./manager.routes'));
+router.use('/admin', require('./admin.routes'));
 
 module.exports = router;

@@ -267,3 +267,91 @@ export interface SurveyorDashboard {
   assessed: number;
   claims: Paged<Claim>;
 }
+
+export interface ReportTable {
+  key: string;
+  title: string;
+  headers: string[];
+  rows: string[][];
+}
+
+export interface ManagerDashboard {
+  pendingApproval: number;
+  highRisk: number;
+  slaBreaches: number;
+  settled: number;
+  queue: Claim[];
+  agentPerformance: ReportTable;
+}
+
+export interface AdminStats {
+  users: number;
+  claims: number;
+  roles: number;
+  auditEvents: number;
+  poolActive: number;
+  poolIdle: number;
+  poolTotal: number;
+}
+
+export interface AdminUser {
+  id: number;
+  fullName: string;
+  email: string;
+  username: string;
+  roleId: number;
+  roleName: string;
+  branch?: string | null;
+  status: string;
+  lastLogin?: string | null;
+  createdAt?: string | null;
+}
+
+export interface RoleWithCount {
+  id: number;
+  name: string;
+  description?: string | null;
+  userCount: number;
+}
+
+export interface SlaConfig {
+  id: number;
+  stage: string;
+  hours: number;
+}
+
+export interface ApprovalThreshold {
+  id: number;
+  level: string;
+  label: string;
+  minAmount: string;
+  maxAmount: string | null;
+}
+
+export interface NotificationTemplate {
+  id: number;
+  name: string;
+  channel: string;
+  active: boolean | number;
+  body?: string | null;
+}
+
+export interface DocumentRequirement {
+  id: number;
+  claimType: string;
+  claimSubtype?: string | null;
+  docType: string;
+  required: boolean | number;
+}
+
+export interface AuditLog {
+  id: number;
+  ts?: string | null;
+  userId?: number | null;
+  username?: string | null;
+  role?: string | null;
+  action: string;
+  entity?: string | null;
+  ipAddress?: string | null;
+  result: string;
+}

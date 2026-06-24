@@ -27,7 +27,7 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 | 1 | Auth + layout (JWT, shell, login) | ✅ DONE (committed) |
 | 2 | Customer portal | ✅ DONE (committed) |
 | 3 | Agent + Surveyor portals | ✅ DONE (committed) |
-| 4 | Manager + Admin + reports | ⬜ pending |
+| 4 | Manager + Admin + reports | ✅ DONE (committed) |
 | 5 | Uploads + CSV exports | ⬜ pending |
 | 6 | Parity verification + cutover | ⬜ pending |
 
@@ -94,6 +94,21 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 - app.routes loads real agent/surveyor components. Verified via proxy + deep-links.
 
 > Document/report upload still stubbed (Phase 5). `POST /surveyor/claims/:id/report` route deferred to Phase 5.
+
+### Phase 4 — DONE
+**Backend (tested vs live DB):**
+- repos: `reportRepo` (6 raw aggregate queries). services: `managerService` (dashboardStats, overrideSettlement), `reportService` (allReports/report), `adminService` (stats w/ tarn pool, searchUsers, roles, createUser/updateUser/resetPassword, config reads+writes, auditLogs). approvalService.decide reused.
+- routes: `/api/v1/manager` (dashboard, approvals, claim detail, decision, settlement/override, reports) + `/api/v1/admin` (dashboard, users CRUD, roles, config sla/thresholds/templates/documents, audit). roleGuard MANAGER/ADMIN.
+- **Verified:** manager decide APPROVED → claim APPROVED (L1+L2 approved); 6 reports correct shapes/data; admin dashboard (pool stats), users list (no passwordHash leak), config reads (sla6/thresholds3/templates4/docs10), audit filter, updateSla; RBAC agent→admin 403.
+- Bug fixed: reportRepo `rawRows(sql, n)` used `n.map` — now `Array.from({length:n})`.
+
+**Frontend (builds clean):**
+- shared `report-table` component; models for reports/admin/audit/config.
+- `features/manager`: dashboard (queue + agent perf), approvals, claim-detail (decision form + override), reports.
+- `features/admin`: dashboard, users (create + inline update/reset), roles, sla, thresholds, templates, documents, audit.
+- app.routes loads all real components; Phase-0 PagePlaceholder removed.
+
+> CSV export buttons (manager reports, admin audit) intentionally deferred to Phase 5.
 
 ## Key facts / decisions (don't re-derive)
 - BCrypt: existing `$2a$10$...` hashes verify via `bcryptjs` (confirmed). New hashes use cost 10.
