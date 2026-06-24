@@ -1,0 +1,87 @@
+# ============================================================================
+# Build output
+# ============================================================================
+target/
+build/
+out/
+bin/
+*.class
+
+# Packaged artifacts
+*.war
+*.ear
+*.jar
+*.nar
+!.mvn/wrapper/maven-wrapper.jar
+
+# ============================================================================
+# Maven
+# ============================================================================
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.properties
+
+# ============================================================================
+# Logs & runtime
+# ============================================================================
+*.log
+logs/
+*.pid
+hs_err_pid*
+replay_pid*
+
+# Local uploads / runtime data (see icms.upload.dir)
+icms-uploads/
+
+# ============================================================================
+# Local environment & secrets — never commit real credentials
+# (db.properties holds safe defaults only and stays tracked)
+# ============================================================================
+.env
+.env.*
+*.local
+*-secret*
+*.keystore
+*.jks
+*.p12
+
+# ============================================================================
+# IDEs & editors
+# ============================================================================
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.classpath
+.project
+.settings/
+.factorypath
+.apt_generated/
+
+# VS Code
+.vscode/
+
+# NetBeans
+nbproject/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# ============================================================================
+# OS files
+# ============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
