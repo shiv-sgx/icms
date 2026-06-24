@@ -24,7 +24,7 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 | Phase | Scope | Status |
 |------|-------|--------|
 | 0 | Scaffold backend + frontend | ✅ DONE (committed) |
-| 1 | Auth + layout (JWT, shell, login) | 🔄 IN PROGRESS |
+| 1 | Auth + layout (JWT, shell, login) | ✅ DONE (committed) |
 | 2 | Customer portal | ⬜ pending |
 | 3 | Agent + Surveyor portals | ⬜ pending |
 | 4 | Manager + Admin + reports | ⬜ pending |
@@ -36,7 +36,7 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 - `/frontend`: Angular 22 standalone; reuses `icms.css` verbatim; dev proxy `/api`→:3000; landing verifies design + proxy. Builds clean.
 - Root `.gitignore` updated (node_modules/dist/.angular). Verified end-to-end (ng serve → Node → MySQL).
 
-### Phase 1 — IN PROGRESS
+### Phase 1 — DONE
 **Backend (DONE + tested):**
 - `utils/bcrypt.js` (jbcrypt-compatible — verified `$2a$10$` hashes authenticate), `utils/jwt.js`, `utils/errors.js`, `utils/http.js`.
 - `repositories/`: `userRepo.js` (full port of JdbcUserDao), `roleRepo.js`, `auditRepo.js`.
@@ -45,17 +45,20 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 - `controllers/auth.controller.js` (login, logout, me, faq) + `routes/auth.routes.js`, mounted at `/api/v1/auth`.
 - **Verified:** wrong pw→401 generic; missing→400; admin login→token+user; /me works; no-token→401; customer role correct; LOGIN/LOGIN_FAIL audit rows written.
 
-**Frontend (PARTIAL — remaining to finish Phase 1):**
-- DONE: `shared/models/index.ts`; `core/auth/{token-storage,auth.service}.ts`; `core/services/{flash,confirm}.service.ts`;
-  `core/interceptors/{auth,error}.interceptor.ts`; `core/guards/{auth,role}.guard.ts`;
-  `core/layout/{app-shell,public-shell}.ts`; `features/auth/login.ts`.
-- TODO to finish Phase 1:
-  1. `features/auth/faq.ts` (render FAQ from `GET /auth/faq`), `features/auth/denied.ts`, `features/auth/error.ts` (404/500).
-  2. Per-role dashboard placeholder components (so login redirect + sidebar nav resolve): customer/agent/surveyor/manager/admin `dashboard` + a generic "coming soon" page for not-yet-built routes (claims, profile, etc.).
-  3. `app.routes.ts`: public shell (`/login`, `/faq` optionally public), authed AppShell with `authGuard` + per-role children using `roleGuard` (data.role). `'' → redirect to role dashboard or /login`. `/denied`, `**`.
-  4. Register interceptors in `app.config.ts`: `provideHttpClient(withInterceptors([authInterceptor, errorInterceptor]))`.
-  5. Remove the Phase 0 `features/landing` placeholder + its route.
-  6. Build (`ng build`) and verify login→dashboard→logout against running backend.
+**Frontend (DONE):**
+- `shared/models/index.ts`; `core/auth/{token-storage,auth.service}.ts` (JWT decode + role signal);
+  `core/services/{flash,confirm}.service.ts`; `core/interceptors/{auth,error}.interceptor.ts`;
+  `core/guards/{auth,role,home-redirect}.guard.ts`; `core/layout/{app-shell,public-shell}.ts`;
+  `features/auth/{login,faq,denied}.ts`; `shared/components/page-placeholder.ts` (used for not-yet-built routes).
+- `app.routes.ts`: `/login` under PublicShell; authed area under AppShell (`authGuard`) with per-role children
+  (`roleGuard` + `data.role`); `'' → homeRedirectGuard` (role dashboard or /login); `/faq`, `/denied`, `** → ''`.
+  Placeholder routes registered for every sidebar link (replaced phase-by-phase).
+- Interceptors registered in `app.config.ts`. Phase 0 landing removed.
+- **Verified:** `ng build` clean; SPA served; login via proxy → token; `/me`; deep-link SPA fallback 200;
+  JWT decodes to correct claims and routes to `/<role>/dashboard`.
+
+> NOTE: `.nav-item.active` has no rule in icms.css (original relied on icms.js adding the class
+> with no distinct style); `routerLinkActive="active"` is wired but intentionally not restyled to avoid drift.
 
 ## Key facts / decisions (don't re-derive)
 - BCrypt: existing `$2a$10$...` hashes verify via `bcryptjs` (confirmed). New hashes use cost 10.
