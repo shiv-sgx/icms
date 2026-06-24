@@ -14,8 +14,8 @@ async function main() {
   await verifyConnection();
 
   const app = createApp();
-  const server = app.listen(config.port, () => {
-    logger.info(`ICMS API listening on :${config.port} (env=${config.env})`);
+  const server = app.listen(config.port, config.host, () => {
+    logger.info(`ICMS API listening on ${config.host}:${config.port} (env=${config.env})`);
   });
 
   const shutdown = async (signal) => {

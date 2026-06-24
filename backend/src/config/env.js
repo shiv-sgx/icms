@@ -88,6 +88,9 @@ function parseDbConnection() {
 const config = Object.freeze({
   env: get('node.env', process.env.NODE_ENV || 'development'),
   port: getInt('port', 3000),
+  // Bind address. 0.0.0.0 listens on all IPv4 interfaces (reachable via LAN IP);
+  // set HOST=127.0.0.1 to restrict to localhost only.
+  host: get('host', '0.0.0.0'),
   logLevel: get('log.level', 'info'),
 
   db: {
