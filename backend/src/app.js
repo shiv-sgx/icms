@@ -21,7 +21,18 @@ function createApp() {
   app.disable('x-powered-by');
   app.set('trust proxy', true); // honor X-Forwarded-* from a fronting proxy
 
-  app.use(helmet());
+  // Helmet security headers. Drop `upgrade-insecure-requests` from the default CSP
+  // so the SPA loads over plain HTTP on a LAN IP (otherwise the browser upgrades
+  // JS/CSS to https:// — which has no TLS here — and the page renders blank).
+  // Behind TLS/a reverse proxy in production, re-enable it.
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: { upgradeInsecureRequests: null },
+      },
+    })
+  );
 
   if (config.cors.origins.length > 0) {
     // CORS only matters for cross-origin browsers (a SPA served from a different
