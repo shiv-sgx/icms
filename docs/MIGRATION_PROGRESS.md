@@ -29,7 +29,9 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 | 3 | Agent + Surveyor portals | ✅ DONE (committed) |
 | 4 | Manager + Admin + reports | ✅ DONE (committed) |
 | 5 | Uploads + CSV exports | ✅ DONE (committed) |
-| 6 | Parity verification + cutover | ⬜ pending |
+| 6 | Parity verification + cutover | ✅ DONE (committed) |
+
+**MIGRATION COMPLETE** — all phases done. See `docs/CUTOVER.md` for deployment/cutover.
 
 ### Phase 0 — DONE
 - `/backend`: Express+Knex+pino; `env.js` (mirrors AppConfig key convention), `knex.js` (no migrations, tarn pool stats), `tx.js` (= Db.inTransaction), correlation-id + helmet + cors + central error handler, `GET /api/v1/health` (verified against live DB).
@@ -120,6 +122,12 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 **Frontend (builds clean):**
 - `shared/download.ts` (blob download). Customer claim-detail + surveyor assess now have real upload forms (replacing the stubs); surveyor assess gained the Survey Documents panel.
 - CSV export buttons wired: manager reports (per-report) + admin audit (uses HttpClient blob + auth interceptor).
+
+### Phase 6 — DONE
+- `backend/test/smoke/smoke-test.sh` — JWT/REST rewrite of the legacy smoke test; drives the full lifecycle and asserts against the SAME MySQL DB. **Result: 13 passed, 0 failed** (incl. `net_payable = 95000.00`, claim → SETTLED, settlement → PAYMENT_CONFIRMED). Run: `npm run smoke` (backend).
+- Production cutover path: `STATIC_DIR` env makes Express serve the built Angular SPA same-origin with `/api/*` routing + SPA deep-link fallback. **Verified:** `/` serves app, `/admin/users` deep-link → index (200), API + login work same-origin.
+- `docs/CUTOVER.md` documents side-by-side running, prod topology, env vars, parity check, cutover steps, rollback.
+- Legacy Struts app untouched and still runnable; DB source of truth unchanged.
 
 ## Key facts / decisions (don't re-derive)
 - BCrypt: existing `$2a$10$...` hashes verify via `bcryptjs` (confirmed). New hashes use cost 10.

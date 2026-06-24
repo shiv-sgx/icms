@@ -49,6 +49,17 @@ function createApp() {
   // Versioned API surface
   app.use('/api/v1', routes);
 
+  // Optional: serve the built Angular SPA same-origin (production cutover).
+  if (config.staticDir) {
+    const path = require('path');
+    app.use(express.static(config.staticDir));
+    // SPA fallback: any non-API GET returns index.html (client-side routing).
+    app.get(/^(?!\/api\/).*/, (req, res, next) => {
+      if (req.method !== 'GET') return next();
+      res.sendFile(path.join(config.staticDir, 'index.html'));
+    });
+  }
+
   app.use(notFound);
   app.use(errorHandler);
 

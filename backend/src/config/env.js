@@ -114,6 +114,10 @@ const config = Object.freeze({
     secret: get('jwt.secret'), // validated at startup (see assertConfig)
     ttl: get('jwt.ttl', '8h'),
   },
+
+  // Optional: absolute path to the built Angular SPA (dist/frontend/browser).
+  // When set, Node serves the SPA same-origin (production cutover) with /api/* still routed.
+  staticDir: expandHome(get('static.dir', '')),
 });
 
 /** Fail fast at boot if a security-critical secret is missing/insecure. */
