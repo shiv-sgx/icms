@@ -64,6 +64,13 @@ export class CustomerApi {
     return this.http.post(`${this.base}/claims/${claimId}/messages`, { content });
   }
 
+  uploadDocument(claimId: number, docType: string, file: File): Observable<unknown> {
+    const fd = new FormData();
+    fd.append('docType', docType);
+    fd.append('file', file);
+    return this.http.post(`${this.base}/claims/${claimId}/documents`, fd);
+  }
+
   withdraw(claimId: number): Observable<unknown> {
     return this.http.post(`${this.base}/claims/${claimId}/withdraw`, {});
   }

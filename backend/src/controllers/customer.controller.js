@@ -6,6 +6,8 @@ const { parsePageParams, paged } = require('../utils/paging');
 const claimService = require('../services/claimService');
 const communicationService = require('../services/communicationService');
 const notificationService = require('../services/notificationService');
+const documentService = require('../services/documentService');
+const audit = require('../services/auditService');
 
 /** Resolve the logged-in customer's policyholder (linked by email), or null. */
 async function resolvePolicyholder(req) {
@@ -142,6 +144,17 @@ const postMessage = asyncH(async (req, res) => {
   return ok(res, req, { ok: true }, 201);
 });
 
+const uploadDocument = asyncH(async (req, res) => {
+  const ph = await resolvePolicyholder(req);
+  const claimId = Number(req.params.id);
+  if (!ph || !(await claimService.getOwnedClaim(ph.id, claimId))) {
+    throw new NotFoundError('Claim not found');
+  }
+  const result = await documentService.upload(claimId, req.body.docType, req.file);
+  await audit.success(req.user, 'DOC_UPLOAD', `claim:${claimId} / ${req.body.docType}`, req.ip);
+  return ok(res, req, result, 201);
+});
+
 const withdraw = asyncH(async (req, res) => {
   const ph = await resolvePolicyholder(req);
   if (!ph) throw new NotFoundError('Claim not found');
@@ -159,4 +172,5 @@ module.exports = {
   createClaim,
   postMessage,
   withdraw,
+  uploadDocument,
 };

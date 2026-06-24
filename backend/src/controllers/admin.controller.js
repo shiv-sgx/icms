@@ -3,6 +3,7 @@
 const { asyncH, ok } = require('../utils/http');
 const { parsePageParams } = require('../utils/paging');
 const adminService = require('../services/adminService');
+const { toCsv } = require('../utils/csv');
 
 /* ---- dashboard ---- */
 const dashboard = asyncH(async (req, res) => ok(res, req, await adminService.stats()));
@@ -82,6 +83,18 @@ const audit = asyncH(async (req, res) => {
   return ok(res, req, await adminService.auditLogs(action, result, page, size, offset));
 });
 
+const exportAudit = asyncH(async (req, res) => {
+  const action = (req.query.action || '').trim() || null;
+  const result = (req.query.result || '').trim() || null;
+  const logs = await adminService.auditLogsForExport(action, result);
+  const headers = ['Timestamp', 'User', 'Role', 'Action', 'Entity', 'IP', 'Result'];
+  const rows = logs.map((l) => [l.ts, l.username, l.role, l.action, l.entity, l.ipAddress, l.result]);
+  const csv = toCsv(headers, rows);
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="audit-logs.csv"');
+  return res.send(csv);
+});
+
 module.exports = {
   dashboard,
   listUsers,
@@ -99,4 +112,5 @@ module.exports = {
   addDocument,
   deleteDocument,
   audit,
+  exportAudit,
 };

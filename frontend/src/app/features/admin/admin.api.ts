@@ -79,4 +79,7 @@ export class AdminApi {
   audit(action: string, result: string, page: number, size = 15): Observable<Paged<AuditLog>> {
     return this.d(this.http.get<ApiEnvelope<Paged<AuditLog>>>(`${this.base}/audit`, { params: { action, result, page, size } }));
   }
+  exportAudit(action: string, result: string): Observable<Blob> {
+    return this.http.get(`${this.base}/audit/export`, { params: { action, result }, responseType: 'blob' });
+  }
 }

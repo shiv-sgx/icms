@@ -30,4 +30,7 @@ export class ManagerApi {
   reports(): Observable<ReportTable[]> {
     return this.d(this.http.get<ApiEnvelope<ReportTable[]>>(`${this.base}/reports`));
   }
+  exportReport(type: string): Observable<Blob> {
+    return this.http.get(`${this.base}/reports/${type}/export`, { responseType: 'blob' });
+  }
 }

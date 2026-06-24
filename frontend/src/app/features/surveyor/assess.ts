@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { FormArray, FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormArray, FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SurveyorApi } from './surveyor.api';
 import { AssessScreen } from '../../shared/models';
@@ -13,7 +13,7 @@ const fmt = (n: number) => (Number.isFinite(n) ? n : 0).toFixed(2);
 /** Surveyor assessment — ports surveyor/assess.jsp incl. the live net-payable calc. */
 @Component({
   selector: 'app-surveyor-assess',
-  imports: [RouterLink, ReactiveFormsModule, StatusPill],
+  imports: [RouterLink, ReactiveFormsModule, FormsModule, StatusPill],
   template: `
     @if (screen(); as s) {
       <div class="page-head with-action">
@@ -131,6 +131,33 @@ const fmt = (n: number) => (Number.isFinite(n) ? n : 0).toFixed(2);
           </div>
         </form>
       }
+
+      <!-- Survey documents + upload -->
+      <div class="panel">
+        <div class="panel-head">Survey Documents</div>
+        <div class="panel-body no-pad">
+          <table class="table">
+            <thead><tr><th>Document</th><th>Status</th></tr></thead>
+            <tbody>
+              @for (d of s.documents; track d.id) {
+                <tr>
+                  <td>{{ d.docType }}@if (d.fileName) { — <span class="muted small">{{ d.fileName }}</span> }</td>
+                  <td><span class="pill" [class.pill-ok]="d.uploadStatus === 'UPLOADED'" [class.pill-warn]="d.uploadStatus !== 'UPLOADED'">{{ d.uploadStatus }}</span></td>
+                </tr>
+              } @empty {
+                <tr><td colspan="2" class="empty">No documents.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="panel-foot">
+          <form class="upload-form" (ngSubmit)="upload(s.claim.id)">
+            <input type="text" class="input" name="rdt" [(ngModel)]="reportDocType" placeholder="e.g. Survey Report, Site Photo" required />
+            <input type="file" class="input" (change)="onFile($event)" required />
+            <button type="submit" class="btn btn-primary" [disabled]="!reportFile">Upload</button>
+          </form>
+        </div>
+      </div>
     }
   `,
 })
@@ -143,6 +170,8 @@ export class SurveyorAssessPage {
   id = input.required<string>();
   screen = signal<AssessScreen | null>(null);
   submitting = signal(false);
+  reportDocType = '';
+  reportFile: File | null = null;
 
   form = this.fb.nonNullable.group({
     visitDate: '',
@@ -210,6 +239,23 @@ export class SurveyorAssessPage {
         this.submitting.set(false);
         this.flash.error(err?.error?.error?.message || 'Could not submit the assessment.');
       },
+    });
+  }
+
+  onFile(e: Event): void {
+    this.reportFile = (e.target as HTMLInputElement).files?.[0] ?? null;
+  }
+
+  upload(claimId: number): void {
+    if (!this.reportFile || !this.reportDocType.trim()) return;
+    this.api.uploadReport(claimId, this.reportDocType.trim(), this.reportFile).subscribe({
+      next: () => {
+        this.flash.success('Document uploaded.');
+        this.reportDocType = '';
+        this.reportFile = null;
+        this.reload();
+      },
+      error: (err) => this.flash.error(err?.error?.error?.message || 'Upload failed.'),
     });
   }
 }

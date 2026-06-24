@@ -5,6 +5,7 @@ const { body } = require('express-validator');
 const { authJwt } = require('../middleware/authJwt');
 const { roleGuard } = require('../middleware/roleGuard');
 const { validate } = require('../middleware/validate');
+const { single } = require('../utils/fileUpload');
 const c = require('../controllers/customer.controller');
 
 const router = express.Router();
@@ -27,5 +28,6 @@ router.post(
 );
 
 router.post('/claims/:id/withdraw', c.withdraw);
+router.post('/claims/:id/documents', single('file'), c.uploadDocument);
 
 module.exports = router;

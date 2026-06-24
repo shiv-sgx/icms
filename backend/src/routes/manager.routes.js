@@ -25,6 +25,6 @@ router.post(
   c.overrideSettlement
 );
 router.get('/reports', c.reports);
-// GET /reports/:type/export (CSV) is added in Phase 5.
+router.get('/reports/:type/export', c.exportReport);
 
 module.exports = router;

@@ -3,13 +3,17 @@ import { FormsModule } from '@angular/forms';
 import { AdminApi } from './admin.api';
 import { AuditLog, Paged } from '../../shared/models';
 import { Paginator } from '../../shared/components/paginator';
+import { downloadBlob } from '../../shared/download';
 
 /** Audit logs — ports admin/audit.jsp (CSV export wired in Phase 5). */
 @Component({
   selector: 'app-admin-audit',
   imports: [FormsModule, Paginator],
   template: `
-    <div class="page-head"><h1 class="page-title">Audit Logs</h1><p class="page-sub">System activity trail</p></div>
+    <div class="page-head with-action">
+      <div><h1 class="page-title">Audit Logs</h1><p class="page-sub">System activity trail</p></div>
+      <button class="btn btn-primary" (click)="exportCsv()">Export CSV</button>
+    </div>
 
     <div class="filter-bar">
       <input type="text" class="input" placeholder="Filter by action (e.g. LOGIN)" [(ngModel)]="action" />
@@ -65,5 +69,8 @@ export class AdminAuditPage {
     this.action = '';
     this.result = '';
     this.load(1);
+  }
+  exportCsv(): void {
+    this.api.exportAudit(this.action, this.result).subscribe((blob) => downloadBlob('audit-logs.csv', blob));
   }
 }

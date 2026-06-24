@@ -7,6 +7,7 @@ const agentClaimService = require('../services/agentClaimService');
 const managerService = require('../services/managerService');
 const approvalService = require('../services/approvalService');
 const reportService = require('../services/reportService');
+const { toCsv } = require('../utils/csv');
 
 const dashboard = asyncH(async (req, res) => {
   const [stats, queue, agentPerformance] = await Promise.all([
@@ -54,4 +55,13 @@ const reports = asyncH(async (req, res) => {
   return ok(res, req, await reportService.allReports());
 });
 
-module.exports = { dashboard, approvals, claimDetail, decide, overrideSettlement, reports };
+const exportReport = asyncH(async (req, res) => {
+  const table = await reportService.report(req.params.type);
+  if (!table) throw new NotFoundError('Unknown report');
+  const csv = toCsv(table.headers, table.rows);
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${table.key}.csv"`);
+  return res.send(csv);
+});
+
+module.exports = { dashboard, approvals, claimDetail, decide, overrideSettlement, reports, exportReport };

@@ -28,4 +28,11 @@ export class SurveyorApi {
       body
     );
   }
+
+  uploadReport(claimId: number, docType: string, file: File): Observable<unknown> {
+    const fd = new FormData();
+    fd.append('docType', docType);
+    fd.append('file', file);
+    return this.http.post(`${this.base}/claims/${claimId}/report`, fd);
+  }
 }

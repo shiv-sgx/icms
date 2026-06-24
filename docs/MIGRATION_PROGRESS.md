@@ -28,7 +28,7 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 | 2 | Customer portal | ✅ DONE (committed) |
 | 3 | Agent + Surveyor portals | ✅ DONE (committed) |
 | 4 | Manager + Admin + reports | ✅ DONE (committed) |
-| 5 | Uploads + CSV exports | ⬜ pending |
+| 5 | Uploads + CSV exports | ✅ DONE (committed) |
 | 6 | Parity verification + cutover | ⬜ pending |
 
 ### Phase 0 — DONE
@@ -109,6 +109,17 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 - app.routes loads all real components; Phase-0 PagePlaceholder removed.
 
 > CSV export buttons (manager reports, admin audit) intentionally deferred to Phase 5.
+
+### Phase 5 — DONE
+**Backend (tested vs live DB):**
+- `utils/fileUpload.js` (multer **2.x** memoryStorage, 10MB cap, ext whitelist, `single()` wrapper mapping multer errors→400, `sanitize()`), `utils/csv.js` (RFC-4180 + CSV-injection guard).
+- `documentService.upload()` ported: validate, sanitize, write to `ICMS_UPLOAD_DIR/claims/{id}/{hrtime}_{name}`, fill pending slot or insert (in tx).
+- routes: `POST /customer/claims/:id/documents` + `POST /surveyor/claims/:id/report` (multipart, ownership-checked, audited DOC_UPLOAD/SURVEY_REPORT_UPLOAD); `GET /manager/reports/:type/export` + `GET /admin/audit/export` (CSV stream, Content-Disposition).
+- **Verified:** customer PDF upload → file on disk + DB row UPLOADED/UNDER_REVIEW filling the pending slot; `.exe` rejected 400; manager CSV export correct headers + RFC-4180; admin audit CSV export 33 rows.
+
+**Frontend (builds clean):**
+- `shared/download.ts` (blob download). Customer claim-detail + surveyor assess now have real upload forms (replacing the stubs); surveyor assess gained the Survey Documents panel.
+- CSV export buttons wired: manager reports (per-report) + admin audit (uses HttpClient blob + auth interceptor).
 
 ## Key facts / decisions (don't re-derive)
 - BCrypt: existing `$2a$10$...` hashes verify via `bcryptjs` (confirmed). New hashes use cost 10.

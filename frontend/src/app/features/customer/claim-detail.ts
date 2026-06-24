@@ -76,7 +76,11 @@ import { MessageThread } from '../../shared/components/message-thread';
             </table>
           </div>
           <div class="panel-foot">
-            <p class="muted small">Document upload will be available in an upcoming update.</p>
+            <form class="upload-form" (ngSubmit)="upload(b.claim.id)">
+              <input type="text" class="input" name="docType" [(ngModel)]="uploadDocType" placeholder="Document type (e.g. FIR Copy)" required />
+              <input type="file" class="input" (change)="onFile($event)" required />
+              <button type="submit" class="btn btn-primary" [disabled]="!uploadFile">Upload</button>
+            </form>
           </div>
         </div>
       </div>
@@ -104,6 +108,8 @@ export class CustomerClaimDetailPage {
   id = input.required<string>();
   bundle = signal<ClaimBundle | null>(null);
   draftMessage = signal('');
+  uploadDocType = '';
+  uploadFile: File | null = null;
   currentUserId = computed(() => this.auth.user()?.id ?? null);
 
   constructor() {
@@ -130,6 +136,23 @@ export class CustomerClaimDetailPage {
     this.api.withdraw(claimId).subscribe(() => {
       this.flash.success('Claim withdrawn.');
       this.reload();
+    });
+  }
+
+  onFile(e: Event): void {
+    this.uploadFile = (e.target as HTMLInputElement).files?.[0] ?? null;
+  }
+
+  upload(claimId: number): void {
+    if (!this.uploadFile || !this.uploadDocType.trim()) return;
+    this.api.uploadDocument(claimId, this.uploadDocType.trim(), this.uploadFile).subscribe({
+      next: () => {
+        this.flash.success('Document uploaded.');
+        this.uploadDocType = '';
+        this.uploadFile = null;
+        this.reload();
+      },
+      error: (err) => this.flash.error(err?.error?.error?.message || 'Upload failed.'),
     });
   }
 }

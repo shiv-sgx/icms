@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { ManagerApi } from './manager.api';
 import { ReportTable } from '../../shared/models';
 import { ReportTableView } from '../../shared/components/report-table';
+import { downloadBlob } from '../../shared/download';
 
 /** Reports & Analytics — ports manager/reports.jsp (CSV export wired in Phase 5). */
 @Component({
@@ -15,7 +16,10 @@ import { ReportTableView } from '../../shared/components/report-table';
 
     @for (r of reports(); track r.key) {
       <div class="panel">
-        <div class="panel-head">{{ r.title }}</div>
+        <div class="panel-head">
+          {{ r.title }}
+          <a class="link-more" style="cursor:pointer" (click)="exportCsv(r.key)">Export CSV</a>
+        </div>
         <div class="panel-body no-pad">
           <app-report-table [report]="r" />
         </div>
@@ -28,5 +32,8 @@ export class ManagerReportsPage {
   reports = signal<ReportTable[]>([]);
   constructor() {
     this.api.reports().subscribe((r) => this.reports.set(r));
+  }
+  exportCsv(key: string): void {
+    this.api.exportReport(key).subscribe((blob) => downloadBlob(`${key}.csv`, blob));
   }
 }

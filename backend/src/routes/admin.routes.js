@@ -42,6 +42,6 @@ router.post('/config/documents', c.addDocument);
 router.delete('/config/documents/:id', c.deleteDocument);
 
 router.get('/audit', c.audit);
-// GET /audit/export (CSV) is added in Phase 5.
+router.get('/audit/export', c.exportAudit);
 
 module.exports = router;

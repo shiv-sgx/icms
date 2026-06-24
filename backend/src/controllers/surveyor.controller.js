@@ -4,6 +4,8 @@ const { asyncH, ok } = require('../utils/http');
 const { NotFoundError, ValidationError } = require('../utils/errors');
 const { parsePageParams } = require('../utils/paging');
 const surveyorService = require('../services/surveyorService');
+const documentService = require('../services/documentService');
+const audit = require('../services/auditService');
 
 const dashboard = asyncH(async (req, res) => {
   const { page, size, offset } = parsePageParams(req.query);
@@ -77,4 +79,14 @@ const submitAssessment = asyncH(async (req, res) => {
   return ok(res, req, { ...result, message: 'Assessment submitted. The agent has been notified.' }, 201);
 });
 
-module.exports = { dashboard, assessment, submitAssessment };
+const uploadReport = asyncH(async (req, res) => {
+  const claimId = Number(req.params.id);
+  if (!(await surveyorService.getAssignedClaim(Number(req.user.id), claimId))) {
+    throw new NotFoundError('Claim not found or not assigned to you');
+  }
+  const result = await documentService.upload(claimId, req.body.docType, req.file);
+  await audit.success(req.user, 'SURVEY_REPORT_UPLOAD', `claim:${claimId} / ${req.body.docType}`, req.ip);
+  return ok(res, req, result, 201);
+});
+
+module.exports = { dashboard, assessment, submitAssessment, uploadReport };
