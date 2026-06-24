@@ -18,9 +18,11 @@ router.get(
   })
 );
 
-// Phase 1+ feature routers are mounted under /api/v1 here as they are built:
-//   router.use('/auth', require('./auth.routes'));
+// Feature routers
+router.use('/auth', require('./auth.routes'));
+// Phase 2+ mount points:
 //   router.use('/customer', require('./customer.routes'));
+//   router.use('/agent', require('./agent.routes'));
 //   ...
 
 module.exports = router;
