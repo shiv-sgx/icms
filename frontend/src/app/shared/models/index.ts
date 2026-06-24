@@ -76,6 +76,9 @@ export interface Claim {
   fraudScore?: number;
   internalNotes?: string | null;
   surveyorName?: string | null;
+  agentId?: number | null;
+  surveyorId?: number | null;
+  updatedAt?: string | null;
 }
 
 export interface Policy {
@@ -157,4 +160,110 @@ export interface CustomerDashboard {
   settledClaims: number;
   recentClaims: Claim[];
   notifications: Notification[];
+}
+
+export interface Approval {
+  id: number;
+  claimId: number;
+  level: string;
+  approverId?: number | null;
+  approverRole?: string | null;
+  decision: string;
+  remarks?: string | null;
+  decidedAt?: string | null;
+  createdAt?: string | null;
+  approverName?: string | null;
+}
+
+export interface AssessmentComponent {
+  id?: number;
+  assessmentId?: number;
+  component: string;
+  severity: string;
+  repairCost: string;
+  replaceFlag: boolean | number;
+}
+
+export interface Assessment {
+  id: number;
+  claimId: number;
+  surveyorId?: number | null;
+  visitDate?: string | null;
+  visitTime?: string | null;
+  siteObservations?: string | null;
+  reportRefNo?: string | null;
+  grossAssessed: string;
+  policyDeductible: string;
+  depreciationPct: string;
+  depreciationAmt: string;
+  salvageValue: string;
+  netPayable: string;
+  recommendation?: string | null;
+  remarks?: string | null;
+  status: string;
+  createdAt?: string | null;
+  surveyorName?: string | null;
+}
+
+export interface Settlement {
+  id: number;
+  claimId: number;
+  finalAmount: string;
+  justification?: string | null;
+  paymentMethod: string;
+  accountHolder?: string | null;
+  bankName?: string | null;
+  accountNumber?: string | null;
+  ifscCode?: string | null;
+  status: string;
+  approvedBy?: number | null;
+}
+
+export interface Surveyor {
+  id: number;
+  fullName: string;
+  branch?: string | null;
+}
+
+/** Full agent/manager claim bundle. */
+export interface AgentBundle {
+  claim: Claim;
+  documents: ClaimDocument[];
+  messages: Communication[];
+  approvals: Approval[];
+  settlement: Settlement | null;
+  assessment: Assessment | null;
+  components: AssessmentComponent[];
+  timeline: TimelineStage[];
+  surveyors?: Surveyor[];
+}
+
+export interface SettlementScreen {
+  claim: Claim;
+  settlement: Settlement | null;
+  tracker: string[];
+  suggestedAmount: string;
+  paymentMethods: string[];
+}
+
+export interface AssessScreen {
+  claim: Claim;
+  assessment: Assessment | null;
+  components: AssessmentComponent[];
+  documents: ClaimDocument[];
+}
+
+export interface AgentDashboard {
+  openClaims: number;
+  awaitingSurvey: number;
+  pendingApproval: number;
+  settled: number;
+  worklist: Claim[];
+}
+
+export interface SurveyorDashboard {
+  totalAssigned: number;
+  pendingSurvey: number;
+  assessed: number;
+  claims: Paged<Claim>;
 }

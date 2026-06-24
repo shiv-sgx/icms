@@ -44,12 +44,7 @@ export const routes: Routes = [
         path: 'agent',
         canActivate: [roleGuard],
         data: { role: 'AGENT' },
-        children: [
-          { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-          ph('dashboard', 'Dashboard'),
-          ph('claims', 'Claims'),
-          ph('communications', 'Communications'),
-        ],
+        loadChildren: () => import('./features/agent/agent.routes').then((m) => m.AGENT_ROUTES),
       },
 
       // Surveyor (Phase 3)
@@ -57,10 +52,7 @@ export const routes: Routes = [
         path: 'surveyor',
         canActivate: [roleGuard],
         data: { role: 'SURVEYOR' },
-        children: [
-          { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-          ph('dashboard', 'Dashboard'),
-        ],
+        loadChildren: () => import('./features/surveyor/surveyor.routes').then((m) => m.SURVEYOR_ROUTES),
       },
 
       // Manager (Phase 4)

@@ -26,7 +26,7 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 | 0 | Scaffold backend + frontend | ✅ DONE (committed) |
 | 1 | Auth + layout (JWT, shell, login) | ✅ DONE (committed) |
 | 2 | Customer portal | ✅ DONE (committed) |
-| 3 | Agent + Surveyor portals | ⬜ pending |
+| 3 | Agent + Surveyor portals | ✅ DONE (committed) |
 | 4 | Manager + Admin + reports | ⬜ pending |
 | 5 | Uploads + CSV exports | ⬜ pending |
 | 6 | Parity verification + cutover | ⬜ pending |
@@ -78,6 +78,22 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 - **Verified:** ng build clean; dashboard data loads via dev proxy; customer SPA deep-links 200.
 
 > Document upload UI is intentionally stubbed on claim-detail (panel-foot note) until Phase 5.
+
+### Phase 3 — DONE
+**Backend (tested vs live DB — full lifecycle):**
+- domain: `settlement.js` (TRACKER + next), `approval.js` (decisions).
+- repos: `approvalRepo`, `assessmentRepo` (+components), `settlementRepo` (stamp cols), `configRepo` (full ConfigDao port — thresholds/sla/templates/docreqs, used by Phase 4 too).
+- services: `agentClaimService` (list/statusCounts/worklist/bundle/acknowledge/updateNotes/forwardForApproval), `assignmentService` (availableSurveyors/assignSurveyor), `approvalService` (forClaim/createForwardChain/decide — decide used by Phase 4), `settlementService` (settlementScreen/authorize/advance), `surveyorService` (assignedClaims/counts/getAssignedClaim/assessScreen/submitAssessment with server-side net-payable).
+- controllers/routes: `/api/v1/agent` (dashboard, claims, claim detail+surveyors, acknowledge, assign-surveyor, forward, notes, messages, communications, settlement GET/authorize/advance) + `/api/v1/surveyor` (dashboard, assessment GET/POST). roleGuard AGENT / SURVEYOR.
+- **Verified end-to-end:** agent ack→UNDER_REVIEW; assign→SURVEY_SCHEDULED; surveyor submit → **net payable 83000.00 computed server-side** (gross 100000 − ded 5000 − 10% depr 10000 − salvage 2000), persisted; agent forward (~83k) → PENDING_APPROVAL with L1 APPROVED + L2 PENDING (threshold chain); settlement authorize → SETTLEMENT_PROCESSING, advance ×3 → PAYMENT_CONFIRMED → claim SETTLED.
+
+**Frontend (builds clean):**
+- models: Approval, Assessment, AssessmentComponent, Settlement, Surveyor, AgentBundle, SettlementScreen, AssessScreen, Agent/SurveyorDashboard.
+- `features/agent`: api + dashboard/claims(filter bar)/claim-detail(action bar+assessment+approvals)/settlement(tracker+authorize)/communications, lazy routes.
+- `features/surveyor`: api + dashboard + assess (**live net-payable calc** via reactive FormArray + computed signal — ports icms.js recalc; server recomputes authoritatively), lazy routes.
+- app.routes loads real agent/surveyor components. Verified via proxy + deep-links.
+
+> Document/report upload still stubbed (Phase 5). `POST /surveyor/claims/:id/report` route deferred to Phase 5.
 
 ## Key facts / decisions (don't re-derive)
 - BCrypt: existing `$2a$10$...` hashes verify via `bcryptjs` (confirmed). New hashes use cost 10.
