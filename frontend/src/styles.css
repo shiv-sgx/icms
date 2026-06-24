@@ -1,0 +1,3 @@
+/* Global styles. The ICMS design system is the SAME stylesheet used by the
+   legacy Struts/JSP app — reused verbatim to guarantee identical look & feel. */
+@import './assets/css/icms.css';
