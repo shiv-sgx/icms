@@ -24,9 +24,14 @@ function createApp() {
   app.use(helmet());
 
   if (config.cors.origins.length > 0) {
+    // CORS only matters for cross-origin browsers (a SPA served from a different
+    // host than the API). When the API serves the SPA itself (STATIC_DIR), calls
+    // are same-origin and bypass CORS entirely. Use CORS_ORIGINS=* to reflect any
+    // origin (handy for LAN/dev access from other devices).
+    const allowAny = config.cors.origins.includes('*');
     app.use(
       cors({
-        origin: config.cors.origins,
+        origin: allowAny ? true : config.cors.origins,
         credentials: false, // stateless JWT in Authorization header, not cookies
         allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-Id'],
         exposedHeaders: ['X-Correlation-Id'],
