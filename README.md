@@ -1,17 +1,19 @@
 # ICMS — Insurance Claim Management System
 
-A role-based insurance claim management web application built on **Struts 2.2.1**
-(JSP + Apache Tiles views, Struts2 tag library), **JDBC + HikariCP + MySQL**, and
-**BCrypt** authentication. Runs on Servlet 2.5 / Java 8 / Tomcat 9 and is served as
-the ROOT context.
+A role-based insurance claim management web application built on the **MEAN-style**
+stack: **Angular 22 (standalone)** SPA, **Node.js / Express** REST API, **Knex**
+over **MySQL**, with **JWT** authentication and **BCrypt** password hashing.
 
-It implements the full claim lifecycle across five role portals, matching the
-reference wireframe.
+> Migrated from a legacy Struts 2 / JSP application. The old stack has been removed
+> from the working tree (it remains in git history); the database schema is unchanged.
+> See `docs/MIGRATION_PROGRESS.md`, `docs/MIGRATION_LESSONS.md`, and `docs/CUTOVER.md`.
+
+It implements the full claim lifecycle across five role portals.
 
 ## Roles & portals
 
 | Role | Capabilities |
-|------|--------------|
+|------|-------------|
 | **Customer** | Submit/track claims (multi-type form, draft/submit), status timeline, document upload, messaging, withdraw, profile, FAQ |
 | **Agent** | Worklist dashboard, claims list (filter/search/paginate), acknowledge, assign surveyor, review assessment, forward for approval, settlement processing, communications |
 | **Surveyor** | Assigned claims, assessment (component breakdown → net-payable calculation), survey report/photo upload |
@@ -28,52 +30,40 @@ DRAFT → SUBMITTED → UNDER_REVIEW → SURVEY_SCHEDULED → UNDER_ASSESSMENT
 
 ## Architecture
 
-Layered: **Action → Service → DAO**, thin actions, transactions owned by services.
-
 ```
-config/      AppConfig (env+properties), DataSourceProvider (HikariCP), AppContextListener
-db/          Db (query/update/tx helper), RowMapper, DaoException
-domain/      POJOs + status/role constants
-dao/         JDBC DAOs (parameterised SQL only)
-service/     business logic, transactions, auditing
-web/action/  Struts2 actions (per-role subpackages)
-web/interceptor/  AuthInterceptor, RoleInterceptor (server-side authorization)
-web/filter/  CorrelationIdFilter (request tracing)
-web/support/ SessionUser, Paged, ClaimBundle, ReportTable, CsvWriter
-tools/       PasswordHashTool (used by setup.sh)
+backend/          Node/Express REST API
+  routes → controllers (thin) → services (business logic + tx + audit)
+         → repositories (parameterized Knex) → db/tx
+frontend/         Angular 22 standalone SPA (lazy per-role feature modules)
+config/dbscript/  Canonical DB schema.sql + seed.sql, mysqldump snapshot, dump/restore scripts
+docs/             Migration progress, lessons, implementation plan, cutover guide
 ```
 
-Views: Apache Tiles (`/WEB-INF/tiles.xml`) + Struts2 tags under `/WEB-INF/jsp/`.
+- **API envelope** — success `{ data, correlationId }`; error `{ error: { message, fields? }, correlationId }`; lists `{ items, page, size, total }`.
+- **Money** (`DECIMAL(15,2)`) is carried as **strings** end-to-end (`decimal.js` for math).
+- **Auth** — stateless JWT; `ADMIN` passes every role guard. Server-side role authorization on every secured route.
 
-## Configuration (12-Factor)
+## Setup & run (dev)
 
-All config is externalised — defaults in `src/main/resources/db.properties`, every key
-overridable by an environment variable (e.g. `db.url` → `DB_URL`). **No secrets are
-committed.**
-
-| Key | Env | Default |
-|-----|-----|---------|
-| `db.url` | `DB_URL` | `jdbc:mysql://localhost:3306/icms?...` |
-| `db.user` / `db.password` | `DB_USER` / `DB_PASSWORD` | `root` / *(empty)* |
-| `db.pool.max` / `db.pool.min` | `DB_POOL_MAX` / `DB_POOL_MIN` | `10` / `2` |
-| `icms.upload.dir` | `ICMS_UPLOAD_DIR` | `${user.home}/icms-uploads` |
-| `icms.page.size` | `ICMS_PAGE_SIZE` | `15` |
-
-## Setup & run
-
-Prerequisites: MySQL running locally, and the toolchain under `../tools/`
-(Maven 3.9.x, Tomcat 9, JDK 11) — or set `JAVA_HOME`/`MVN`/`TOMCAT` env vars.
+Prerequisites: **Node 18+** and a running **MySQL** with the `icms` database.
 
 ```bash
-./setup.sh     # creates schema, BCrypt-hashes the demo password, loads seed data
-./run.sh       # builds the WAR and deploys to Tomcat → http://localhost:8080/
-./stop.sh      # stops Tomcat
+# 1. Provision the database (canonical DDL + seed)
+mysql -uroot icms < config/dbscript/schema.sql
+mysql -uroot icms < config/dbscript/seed.sql
+#    …or restore the snapshot:  ./config/dbscript/restore-db.sh
+
+# 2. Backend API (http://localhost:3000)
+cd backend
+cp .env.example .env        # set JWT_SECRET (real random value) + DB creds
+npm install && npm run dev  # http://localhost:3000/api/v1/health
+
+# 3. Frontend SPA (http://localhost:4200, proxies /api → :3000)
+cd ../frontend
+npm install && npx ng serve
 ```
 
-`setup.sh` honours `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and
-`DEMO_PASSWORD` (default `Password@123`).
-
-### Seeded logins (all share the demo password)
+### Seeded logins (all share the demo password `Password@123`)
 
 | Username | Role |
 |----------|------|
@@ -83,19 +73,32 @@ Prerequisites: MySQL running locally, and the toolchain under `../tools/`
 | `surveyor` | SURVEYOR |
 | `customer` | CUSTOMER |
 
-## Security
+## Production (single same-origin process)
 
-- Session-based auth; **role authorization enforced server-side** on every secured
-  namespace (not just hidden nav). Namespaces are prefix-matched so sub-paths can't
-  fall through to "unrestricted".
-- All SQL is parameterised (injection-safe). BCrypt password hashing.
-- Inputs validated server-side; uploads are type/size-checked and stored outside the
-  WAR; the client filename is never trusted for the stored path.
-- Dynamic method invocation is disabled; exceptions are mapped to a generic error page
-  (no stack traces leak to the browser). Every state change is written to `audit_logs`.
+Build the SPA and let Express serve it alongside the API — see **`docs/CUTOVER.md`**
+for the full topology, environment variables, and deployment steps.
+
+```bash
+cd frontend && npm ci && npx ng build --configuration production
+cd ../backend && npm ci
+export STATIC_DIR="$(cd ../frontend/dist/frontend/browser && pwd)"
+npm start                   # SPA + /api/v1 on http://localhost:3000
+```
 
 ## Verification
 
-`./smoke-test.sh` drives the complete lifecycle across all five roles against the
-running app and asserts each transition (submit → acknowledge → assign → assess →
-forward → approve → settle → SETTLED).
+```bash
+cd backend && npm run smoke   # drives the full lifecycle against the live DB
+```
+
+Customer submit → agent ack/assign → surveyor assess → forward → manager approve →
+settle → **SETTLED**, asserting every transition. Expect **13 passed, 0 failed**.
+
+## Security
+
+- Stateless JWT auth; **role authorization enforced server-side** on every secured route (`ADMIN` is a superset).
+- All SQL is parameterized via Knex (injection-safe). BCrypt password hashing (cost 10).
+- Inputs validated server-side (`express-validator`); uploads are type/size-checked and stored outside the web root; the client filename is never trusted for the stored path.
+- Helmet security headers; per-request `X-Correlation-Id` for tracing; every state change is written to `audit_logs`. Internal details are never leaked in error responses.
+</content>
+</invoke>

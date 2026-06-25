@@ -1,30 +1,8 @@
 # ============================================================================
 # Build output
 # ============================================================================
-target/
 build/
 out/
-bin/
-*.class
-
-# Packaged artifacts
-*.war
-*.ear
-*.jar
-*.nar
-!.mvn/wrapper/maven-wrapper.jar
-
-# ============================================================================
-# Maven
-# ============================================================================
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-.mvn/timing.properties
-.mvn/wrapper/maven-wrapper.properties
 
 # ============================================================================
 # Logs & runtime
@@ -40,7 +18,7 @@ icms-uploads/
 
 # ============================================================================
 # Local environment & secrets — never commit real credentials
-# (db.properties holds safe defaults only and stays tracked)
+# (backend/.env.example holds safe defaults only and stays tracked)
 # ============================================================================
 .env
 .env.*

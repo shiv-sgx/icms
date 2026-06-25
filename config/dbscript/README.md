@@ -4,14 +4,21 @@ Operational scripts and a portable MySQL dump for the ICMS `icms` database.
 
 | File              | Purpose                                                            |
 |-------------------|-------------------------------------------------------------------|
+| `schema.sql`      | Canonical DDL — tables, indexes, constraints for the `icms` DB.    |
+| `seed.sql`        | Canonical seed data (demo users, roles, reference config).         |
 | `icms-dump.sql`   | Full `mysqldump` — DROP/CREATE database, schema, data, routines.   |
 | `dump-db.sh`      | Regenerate `icms-dump.sql` from a running MySQL server.            |
 | `restore-db.sh`   | Restore the dump into a target MySQL server (destructive).        |
 
-> The canonical source-of-truth schema and seed remain in
-> `src/main/resources/db/{schema.sql,seed.sql}` (loaded by the app / `setup.sh`).
-> `icms-dump.sql` is a point-in-time snapshot for quick provisioning, backups,
-> and sharing a known-good dataset.
+> `schema.sql` + `seed.sql` are the source-of-truth DDL/seed for the `icms`
+> database (used by the Node/Express backend). `icms-dump.sql` is a point-in-time
+> `mysqldump` snapshot for quick provisioning, backups, and sharing a known-good
+> dataset.
+>
+> Provision a fresh DB from the canonical files:
+> ```bash
+> mysql -uroot -h127.0.0.1 icms < schema.sql && mysql -uroot -h127.0.0.1 icms < seed.sql
+> ```
 
 ## Configuration (12-factor — no hardcoded credentials)
 

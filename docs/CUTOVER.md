@@ -54,8 +54,10 @@ the same MySQL DB, including `net_payable = 95000.00`. Expect **13 passed, 0 fai
 5. Archive the legacy Struts app — keep it in git history; the runtime no longer needs
    `src/main/java`, `src/main/webapp` (JSP), `struts.xml`, `pom.xml`, Tomcat.
 
-> Source of truth for the DB remains `src/main/resources/db/{schema.sql,seed.sql}` and
-> `config/dbscript/icms-dump.sql` — unchanged by the migration.
+> Source of truth for the DB remains `config/dbscript/{schema.sql,seed.sql}` and
+> `config/dbscript/icms-dump.sql` — unchanged by the migration. (The legacy Struts
+> tree, including its original copy under `src/main/resources/db/`, has since been
+> removed from the working tree and lives only in git history.)
 
 ## Rollback
 Because the schema is unchanged and both stacks share the DB, rollback is just:

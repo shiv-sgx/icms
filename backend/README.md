@@ -6,7 +6,7 @@ MySQL `icms` database (no schema changes). Layered to mirror the original:
 
 ## Requirements
 - Node 18+ (works on newer; LTS recommended for prod)
-- The existing MySQL `icms` database (see `../src/main/resources/db/schema.sql` + `seed.sql`)
+- The existing MySQL `icms` database (see `../config/dbscript/schema.sql` + `seed.sql`, or restore `icms-dump.sql`)
 
 ## Setup
 ```bash
