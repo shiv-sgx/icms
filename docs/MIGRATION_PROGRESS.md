@@ -9,7 +9,8 @@ Update it as phases complete.
 
 ## How to run (dev)
 ```bash
-# 1. MySQL must be running with the existing `icms` DB (schema.sql + seed.sql).
+# 1. MySQL must be running with the existing `icms` DB
+#    (provision from config/dbscript/schema.sql + seed.sql, or restore icms-dump.sql).
 # 2. Backend
 cd backend && cp -n .env.example .env   # set JWT_SECRET + DB creds (local .env already created, gitignored)
 npm install && npm run dev              # http://localhost:3000/api/v1/health
@@ -30,6 +31,7 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 | 4 | Manager + Admin + reports | ✅ DONE (committed) |
 | 5 | Uploads + CSV exports | ✅ DONE (committed) |
 | 6 | Parity verification + cutover | ✅ DONE (committed) |
+| 7 | Legacy Struts app removal | ✅ DONE (committed) |
 
 **MIGRATION COMPLETE** — all phases done. See `docs/CUTOVER.md` for deployment/cutover.
 
@@ -127,7 +129,13 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 - `backend/test/smoke/smoke-test.sh` — JWT/REST rewrite of the legacy smoke test; drives the full lifecycle and asserts against the SAME MySQL DB. **Result: 13 passed, 0 failed** (incl. `net_payable = 95000.00`, claim → SETTLED, settlement → PAYMENT_CONFIRMED). Run: `npm run smoke` (backend).
 - Production cutover path: `STATIC_DIR` env makes Express serve the built Angular SPA same-origin with `/api/*` routing + SPA deep-link fallback. **Verified:** `/` serves app, `/admin/users` deep-link → index (200), API + login work same-origin.
 - `docs/CUTOVER.md` documents side-by-side running, prod topology, env vars, parity check, cutover steps, rollback.
-- Legacy Struts app untouched and still runnable; DB source of truth unchanged.
+- At end of Phase 6: legacy Struts app left untouched and still runnable; DB source of truth unchanged. (Removed in Phase 7 — see below.)
+
+### Phase 7 — DONE
+- Legacy Struts 2 / JSP app removed now that the MEAN stack is the system of record. Deleted `src/` (Java + JSP + Struts/Tiles config), `pom.xml`, `target/`, and the Tomcat/Maven scripts (`run.sh`, `stop.sh`, `setup.sh`, root `smoke-test.sh`). It remains recoverable in git history.
+- **Canonical DB DDL/seed preserved:** `schema.sql` + `seed.sql` moved (git mv) from `src/main/resources/db/` to **`config/dbscript/`** — the Node backend still relies on them for the shared MySQL `icms` DB (schema unchanged).
+- References updated: root `README.md` rewritten for the MEAN stack; `backend/README.md`, `config/dbscript/README.md`, and `docs/CUTOVER.md` point at the new schema/seed location. Dead Maven/Java entries dropped from `.gitignore`.
+- **Verified post-removal:** backend smoke test still passes **13/13** (full lifecycle → SETTLED, `net_payable = 95000.00`) against the live API + MySQL — proving the MEAN stack is self-contained.
 
 ## Key facts / decisions (don't re-derive)
 - BCrypt: existing `$2a$10$...` hashes verify via `bcryptjs` (confirmed). New hashes use cost 10.
@@ -135,7 +143,7 @@ Demo users (all password `Password@123`): admin, manager, agent, sunita, surveyo
 - Roles/namespaces: CUSTOMER, AGENT, SURVEYOR, MANAGER, ADMIN. ADMIN passes every role guard.
 - API envelope: success `{data, correlationId}`; error `{error:{message,fields?}, correlationId}`; lists `{items,page,size,total}`.
 - Layering to mirror: routes → controllers (thin) → services (business logic + tx + audit) → repositories (Knex) → db/tx.
-- Reference files: `struts.xml` (routes), `db/Db.java` (tx), `service/ClaimService.java` (representative), `assets/css/icms.css` + `assets/js/icms.js`, `smoke-test.sh`.
+- Reference files (legacy Struts sources — removed in Phase 7, available in git history before commit `d658683`): `struts.xml` (routes), `db/Db.java` (tx), `service/ClaimService.java` (representative), `assets/css/icms.css` + `assets/js/icms.js`, root `smoke-test.sh`. The current smoke test is `backend/test/smoke/smoke-test.sh`; `icms.css` now lives under `frontend/`.
 
 ## REST endpoint map (target — see plan for full table)
 Public: `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`, `GET /auth/faq`.
