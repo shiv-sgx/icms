@@ -32,6 +32,12 @@
         <jstl.version>1.2</jstl.version>
         <!-- Tiles 2 version that ships with struts2-tiles-plugin 2.2.1.1 -->
         <tiles.version>2.0.6</tiles.version>
+
+        <!-- Test dependencies -->
+        <junit.version>5.10.2</junit.version>
+        <!-- Mockito 5.x class files require Java 11; pinned to the last Java-8-compatible 4.x line -->
+        <mockito.version>4.11.0</mockito.version>
+        <jacoco.version>0.8.11</jacoco.version>
     </properties>
 
     <dependencies>
@@ -146,6 +152,33 @@
             <version>2.1</version>
             <scope>provided</scope>
         </dependency>
+
+        <!-- ===== Test dependencies ===== -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Inline mock maker: required by mockConstruction/mockStatic (used by the service-layer tests) -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -161,6 +194,31 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.4.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
