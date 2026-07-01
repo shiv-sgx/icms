@@ -49,7 +49,7 @@ function lifecycleIndex(status) {
 }
 
 function isTerminal(status) {
-  return status === S.CLOSED || status === S.REJECTED || status === S.WITHDRAWN;
+  return status === S.SETTLED || status === S.CLOSED || status === S.REJECTED || status === S.WITHDRAWN;
 }
 
 function isWithdrawable(status) {

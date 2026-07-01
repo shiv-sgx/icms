@@ -109,6 +109,9 @@ const documentRequirements = () => configRepo.documentRequirements(knex);
 
 /* ---- config writes ---- */
 async function updateSla(admin, id, hours, ip) {
+  if (!Number.isInteger(hours) || hours <= 0) {
+    throw new ValidationError('SLA hours must be a positive integer.');
+  }
   return withTransaction(async (trx) => {
     await configRepo.updateSla(trx, id, hours);
     await writeAudit(trx, admin, 'SLA_UPDATED', `sla:${id} -> ${hours}h`, ip);

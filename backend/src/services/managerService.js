@@ -5,7 +5,7 @@ const { withTransaction } = require('../db/tx');
 const settlementRepo = require('../repositories/settlementRepo');
 const claimRepo = require('../repositories/claimRepo');
 const audit = require('./auditService');
-const { dec, toAmount } = require('../utils/money');
+const { toAmount } = require('../utils/money');
 const { ValidationError, ConflictError } = require('../utils/errors');
 
 /** Manager dashboard stats + settlement override — Node port of ManagerService. */
@@ -25,7 +25,8 @@ async function dashboardStats() {
 }
 
 async function overrideSettlement(manager, claimId, amount, justification, ip) {
-  if (amount == null || dec(amount).lessThanOrEqualTo(0)) {
+  const amountNum = Number(amount);
+  if (amount == null || amount === '' || !Number.isFinite(amountNum) || amountNum <= 0) {
     throw new ValidationError('Enter a valid override amount.');
   }
   const amt = toAmount(amount);

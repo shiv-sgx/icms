@@ -10,7 +10,7 @@ const audit = require('./auditService');
 const claimStatus = require('../domain/claimStatus');
 const settlement = require('../domain/settlement');
 const { withStatusView } = require('./claimService');
-const { dec, toAmount } = require('../utils/money');
+const { toAmount } = require('../utils/money');
 const { NotFoundError, ValidationError, ConflictError } = require('../utils/errors');
 const logger = require('../config/logger');
 
@@ -41,7 +41,8 @@ async function settlementScreen(claimId) {
 
 /** Authorise (or re-amount) a settlement. Requires an approved/processing claim. */
 async function authorize(actor, claimId, amount, fields, ip) {
-  if (amount == null || dec(amount).lessThanOrEqualTo(0)) {
+  const amountNum = Number(amount);
+  if (amount == null || amount === '' || !Number.isFinite(amountNum) || amountNum <= 0) {
     throw new ValidationError('Enter a valid settlement amount.');
   }
   const amt = toAmount(amount);
