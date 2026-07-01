@@ -1,0 +1,13 @@
+{
+  "name": "icms-bdd-tests",
+  "version": "1.0.0",
+  "description": "Cucumber.js BDD tests for ICMS REST API",
+  "type": "commonjs",
+  "scripts": {
+    "test": "cucumber-js"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^12.9.0",
+    "node-fetch": "^2.7.0"
+  }
+}
