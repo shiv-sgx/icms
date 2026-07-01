@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.sgx.icms.bdd</groupId>
+    <artifactId>icms-bdd</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+    <name>ICMS BDD — Cucumber-JVM acceptance tests</name>
+    <description>
+        Integration/acceptance specs for ICMS. Requires a running Tomcat instance
+        (target the URL via ICMS_BASE_URL env var, default http://localhost:8080).
+        Run: mvn test -pl project-doc/test-scenarios/steps
+    </description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>8</maven.compiler.release>
+        <cucumber.version>7.18.0</cucumber.version>
+        <junit.platform.version>1.10.2</junit.platform.version>
+    </properties>
+
+    <dependencies>
+        <!-- JUnit 5 Jupiter API (needed for assertions in step definitions) -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Cucumber-JVM core -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- JUnit 5 engine for Cucumber -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-junit-platform-engine</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- JUnit 5 launcher -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
+            <version>${junit.platform.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>${junit.platform.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!--
+             PicoContainer DI: allows Cucumber to inject a shared IcmsWorld
+             instance into every step-definition class constructor.
+             One IcmsWorld per scenario — guarantees isolation between scenarios.
+        -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-picocontainer</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!--
+             MySQL JDBC driver: used ONLY by the @Before reset hook (Hooks.java)
+             to restore the seed baseline before every scenario, giving each
+             scenario an identical, isolated starting state. Test-scope only;
+             the step glue itself drives the app over HTTP.
+        -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.0.33</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- Step definitions live under src/test/java -->
+        <testSourceDirectory>src/test/java</testSourceDirectory>
+        <!-- Feature files live alongside the main feature directory and must
+             be on the test classpath so Cucumber can discover them. -->
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <!-- Copy feature files from the canonical features/ directory. -->
+            <testResource>
+                <directory>../../features</directory>
+                <targetPath>features</targetPath>
+                <includes>
+                    <include>**/*.feature</include>
+                </includes>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <includes>
+                        <include>**/RunCucumberTest.java</include>
+                    </includes>
+                    <!-- Expose env-var-style system properties for the IcmsWorld config. -->
+                    <systemPropertyVariables>
+                        <ICMS_BASE_URL>${env.ICMS_BASE_URL}</ICMS_BASE_URL>
+                        <ICMS_DEMO_PASSWORD>${env.ICMS_DEMO_PASSWORD}</ICMS_DEMO_PASSWORD>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
